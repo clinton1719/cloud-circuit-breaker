@@ -1,5 +1,10 @@
 package com.cloudcb.core;
 
+import com.cloudcb.exceptions.CloudCircuitBreakerOpenException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -7,6 +12,8 @@ import java.util.concurrent.Callable;
  */
 
 public class CloudCircuitBreakerEngine {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CloudCircuitBreakerEngine.class);
 
     private final CircuitBreakerManager manager;
 
@@ -16,7 +23,8 @@ public class CloudCircuitBreakerEngine {
 
     public <T> T execute(String functionName, Callable<T> callable) throws Exception {
         if (manager.isCircuitOpen(functionName)) {
-            throw new RuntimeException("Circuit is OPEN for: " + functionName);
+            LOGGER.error("Circuit is OPEN");
+            throw new CloudCircuitBreakerOpenException("Circuit is OPEN", Map.of("Function", functionName));
         }
 
         try {
@@ -25,6 +33,7 @@ public class CloudCircuitBreakerEngine {
             return result;
         } catch (Exception ex) {
             manager.recordFailure(functionName);
+            LOGGER.error(ex.getMessage());
             throw ex;
         }
     }

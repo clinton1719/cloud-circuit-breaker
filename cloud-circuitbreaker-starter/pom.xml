@@ -11,7 +11,7 @@
     </parent>
     <artifactId>cloud-circuitbreaker-starter</artifactId>
     <name>starter</name>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 
     <dependencies>
         <dependency>
@@ -23,7 +23,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
             <version>3.2.5</version>
-            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.22</version>
         </dependency>
     </dependencies>
 

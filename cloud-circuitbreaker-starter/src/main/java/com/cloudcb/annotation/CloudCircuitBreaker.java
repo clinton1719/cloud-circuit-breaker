@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 /**
  * @author Clinton Fernandes
  */
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface CloudCircuitBreaker {

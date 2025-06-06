@@ -1,6 +1,8 @@
 package com.cloudcb.core;
 
 import com.cloudcb.store.CircuitBreakerStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 
@@ -8,9 +10,12 @@ import java.time.Instant;
  * @author Clinton Fernandes
  */
 public class CircuitBreakerManager {
-    private final CircuitBreakerStore store;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CircuitBreakerManager.class);
     private static final int FAILURE_THRESHOLD = 5;
     private static final int RESET_TIMEOUT_SECONDS = 30;
+    private final CircuitBreakerStore store;
+
     public CircuitBreakerManager(CircuitBreakerStore store) {
         this.store = store;
     }
@@ -21,10 +26,7 @@ public class CircuitBreakerManager {
 
         if ("OPEN".equals(state.status)) {
             Instant now = Instant.now();
-            if (now.isAfter(state.lastFailureTime.plusSeconds(RESET_TIMEOUT_SECONDS))) {
-                return false;
-            }
-            return true;
+            return !now.isAfter(state.lastFailureTime.plusSeconds(RESET_TIMEOUT_SECONDS));
         }
         return false;
     }
@@ -42,6 +44,7 @@ public class CircuitBreakerManager {
             state.lastFailureTime = Instant.now();
             if (state.failureCount >= FAILURE_THRESHOLD) {
                 state.status = "OPEN";
+                LOGGER.info("Updating state to open for {}", key);
             }
         }
         store.saveState(key, state);

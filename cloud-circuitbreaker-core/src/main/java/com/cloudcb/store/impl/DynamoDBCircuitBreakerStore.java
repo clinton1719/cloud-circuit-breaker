@@ -2,6 +2,8 @@ package com.cloudcb.store.impl;
 
 import com.cloudcb.core.CircuitBreakerState;
 import com.cloudcb.store.CircuitBreakerStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
@@ -13,6 +15,8 @@ import java.util.Map;
  * @author Clinton Fernandes
  */
 public class DynamoDBCircuitBreakerStore implements CircuitBreakerStore {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCircuitBreakerStore.class);
     private final DynamoDbClient dynamoDb;
     private final String tableName;
 
@@ -49,8 +53,7 @@ public class DynamoDBCircuitBreakerStore implements CircuitBreakerStore {
 
             dynamoDb.updateItem(request);
         } catch (ConditionalCheckFailedException e) {
-            // TODO Log and suppress — another thread already updated it with newer failure
-            System.out.println("Skipped outdated CB update for " + key);
+            LOGGER.warn("Skipped outdated CB update for {} due to race conditions", key);
         }
     }
 
