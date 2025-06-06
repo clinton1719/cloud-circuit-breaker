@@ -1,0 +1,4 @@
+com\cloudcb\aop\CloudCircuitBreakerAspect.class
+com\cloudcb\config\CloudCircuitBreakerAutoConfiguration.class
+com\cloudcb\annotation\CloudCircuitBreaker.class
+com\cloudcb\config\CloudCircuitBreakerConfig.class
