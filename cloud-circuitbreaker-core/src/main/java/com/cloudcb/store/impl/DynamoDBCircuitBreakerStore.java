@@ -84,18 +84,37 @@ public class DynamoDBCircuitBreakerStore implements CircuitBreakerStore {
     @Override
     public void saveState(String key, CircuitBreakerState state) {
         Map<String, AttributeValue> keyMap = Map.of("id", AttributeValue.fromS(key));
+        String updateExpression = "SET #status = :statusVal, #failureCount = :failureCountVal, #lastFailureTime = :lastFailureTimeVal";
 
-        Map<String, AttributeValueUpdate> updates = new HashMap<>();
-        updates.put("status", AttributeValueUpdate.builder().value(AttributeValue.fromS(state.status)).action(AttributeAction.PUT).build());
-        updates.put("failureCount", AttributeValueUpdate.builder().value(AttributeValue.fromN(Integer.toString(state.failureCount))).action(AttributeAction.PUT).build());
-        updates.put("lastFailureTime", AttributeValueUpdate.builder().value(AttributeValue.fromN(Long.toString(state.lastFailureTime.getEpochSecond()))).action(AttributeAction.PUT).build());
+        Map<String, String> expressionAttributeNames = new HashMap<>();
+        expressionAttributeNames.put("#status", "status");
+        expressionAttributeNames.put("#failureCount", "failureCount");
+        expressionAttributeNames.put("#lastFailureTime", "lastFailureTime");
+
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":statusVal", AttributeValue.fromS(state.status));
+        expressionAttributeValues.put(":failureCountVal", AttributeValue.fromN(Integer.toString(state.failureCount)));
+        expressionAttributeValues.put(":lastFailureTimeVal", AttributeValue.fromN(Long.toString(state.lastFailureTime.getEpochSecond())));
+
+        String conditionExpression = "attribute_not_exists(id) OR #lastFailureTime <= :newTime";
+        expressionAttributeValues.put(":newTime", AttributeValue.fromN(Long.toString(state.lastFailureTime.getEpochSecond())));
+
 
         try {
-            UpdateItemRequest request = UpdateItemRequest.builder().tableName(tableName).key(keyMap).attributeUpdates(updates).conditionExpression("attribute_not_exists(id) OR lastFailureTime <= :newTime").expressionAttributeValues(Map.of(":newTime", AttributeValue.fromN(Long.toString(state.lastFailureTime.getEpochSecond())))).build();
+            UpdateItemRequest request = UpdateItemRequest.builder().tableName(tableName).key(keyMap).updateExpression(updateExpression)
+                    .conditionExpression(conditionExpression).expressionAttributeNames(expressionAttributeNames)
+                    .expressionAttributeValues(expressionAttributeValues).build();
 
             dynamoDb.updateItem(request);
+            LOGGER.debug("Circuit breaker state for key {} saved successfully.", key);
         } catch (ConditionalCheckFailedException e) {
-            LOGGER.warn("Skipped outdated CB update for {} due to race conditions", key);
+            LOGGER.warn("Skipped outdated CB update for {} due to race conditions or older timestamp. Current update time: {}", key, state.lastFailureTime);
+        } catch (DynamoDbException e) {
+            LOGGER.error("Error saving circuit breaker state for key {}: {}", key, e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("An unexpected error occurred while saving circuit breaker state for key {}: {}", key, e.getMessage(), e);
+            throw e;
         }
     }
 

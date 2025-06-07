@@ -54,13 +54,17 @@ import java.util.Map;
 public class CloudCircuitBreakerAspect {
     private final CircuitBreakerManager circuitBreakerManager;
 
+    private final CloudCircuitBreakerConfig config;
+
     /**
      * Constructs the aspect with the provided store, which is used to manage circuit breaker state.
      *
-     * @param store The implementation of {@link CircuitBreakerStore} to use for persistence
+     * @param store  The implementation of {@link CircuitBreakerStore} to use for persistence
+     * @param config Config required for different arguments
      */
-    public CloudCircuitBreakerAspect(CircuitBreakerStore store) {
+    public CloudCircuitBreakerAspect(CircuitBreakerStore store, CloudCircuitBreakerConfig config) {
         this.circuitBreakerManager = new CircuitBreakerManager(store);
+        this.config = config;
     }
 
     /**
@@ -80,7 +84,10 @@ public class CloudCircuitBreakerAspect {
         CloudCircuitBreaker annotation = method.getAnnotation(CloudCircuitBreaker.class);
 
         String functionName = annotation.function().isEmpty() ? method.getName() : annotation.function();
-        String serviceName = CloudCircuitBreakerConfig.getServiceNameStatic();
+        String serviceName = config.getServiceName();
+        if (serviceName == null)
+            throw new IllegalStateException("CloudCircuitBreakerConfig.serviceName is not configured. Please set 'cloudcb.service-name' in application.properties or application.yml.");
+
         String cbKey = serviceName + ":" + functionName;
 
         if (circuitBreakerManager.isCircuitOpen(cbKey)) {

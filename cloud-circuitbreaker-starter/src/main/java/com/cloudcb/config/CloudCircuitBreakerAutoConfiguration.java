@@ -13,7 +13,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
- * Auto-configuration class for setting up the Cloud Circuit Breaker components.
+ * Autoconfiguration class for setting up the Cloud Circuit Breaker components.
  *
  * <p>
  * This class registers beans required for circuit breaker functionality,
@@ -53,7 +53,7 @@ public class CloudCircuitBreakerAutoConfiguration {
     /**
      * Default constructor for CloudCircuitBreakerConfig.
      */
-    public CloudCircuitBreakerAutoConfiguration(){
+    public CloudCircuitBreakerAutoConfiguration() {
 
     }
 
@@ -98,13 +98,14 @@ public class CloudCircuitBreakerAutoConfiguration {
     /**
      * Registers the AOP aspect that applies circuit breaker logic to annotated methods.
      *
-     * @param store the store used to track circuit state
+     * @param store  the store used to track circuit state
+     * @param config The config for table arguments
      * @return the circuit breaker aspect
      */
     @Bean
     @ConditionalOnMissingBean(CloudCircuitBreakerAspect.class)
-    public CloudCircuitBreakerAspect cloudCircuitBreakerAspect(CircuitBreakerStore store) {
-        return new CloudCircuitBreakerAspect(store);
+    public CloudCircuitBreakerAspect cloudCircuitBreakerAspect(CircuitBreakerStore store, CloudCircuitBreakerConfig config) {
+        return new CloudCircuitBreakerAspect(store, config);
     }
 }
 

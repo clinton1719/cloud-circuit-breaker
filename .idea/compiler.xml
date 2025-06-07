@@ -11,12 +11,17 @@
         <outputRelativeToContentRoot value="true" />
         <module name="cloud-circuitbreaker-core" />
         <module name="cloud-circuitbreaker-starter" />
-        <module name="example" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="example" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="cloud-circuitbreaker-core" options="-parameters" />
+      <module name="cloud-circuitbreaker-parent" options="-parameters" />
+      <module name="cloud-circuitbreaker-starter" options="-parameters" />
       <module name="example" options="-parameters" />
     </option>
   </component>

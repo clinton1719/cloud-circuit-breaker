@@ -4,8 +4,7 @@
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.cloudcb</groupId>
-        <artifactId>cloud-circuitbreaker-parent</artifactId>
+        <groupId>io.github.clinton1719</groupId> <artifactId>cloud-circuitbreaker-parent</artifactId>
         <version>0.1.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>

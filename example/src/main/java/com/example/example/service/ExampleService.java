@@ -10,7 +10,8 @@ import org.springframework.stereotype.Service;
 public class ExampleService {
     @CloudCircuitBreaker(function = "callDownstreamService", fallback = "fallbackService")
     public String callDownstreamService() {
-        return "Success!";
+        System.err.println("  ---> SIMULATING FAILURE for myDownstreamApiCall!");
+        throw new RuntimeException("Simulated External API connection timeout / error!");
     }
 
     public String fallbackService() {
