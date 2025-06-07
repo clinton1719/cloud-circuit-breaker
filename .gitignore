@@ -4,6 +4,7 @@ cloud-circuitbreaker-core/target/
 !**/src/test/**/target/
 
 **/target/
+cloud-circuitbreaker-starter/.idea/vcs.xml
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

@@ -12,19 +12,51 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * A DynamoDB-based implementation of the {@link CircuitBreakerStore} interface.
+ *
+ * <p>
+ * This class persists circuit breaker state in a DynamoDB table with a primary key of {@code id}.
+ * It supports conditional updates to prevent race conditions when updating stale states.
+ * </p>
+ *
+ * <p>Required DynamoDB table schema:</p>
+ * <ul>
+ *     <li>Partition key: {@code id} (String)</li>
+ *     <li>Attributes: {@code status} (String), {@code failureCount} (Number), {@code lastFailureTime} (Number - epoch seconds)</li>
+ * </ul>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * DynamoDbClient client = DynamoDbClient.create();
+ * CircuitBreakerStore store = new DynamoDBCircuitBreakerStore(client, "cloud-cb-table");
+ * }</pre>
+ *
  * @author Clinton Fernandes
  */
 public class DynamoDBCircuitBreakerStore implements CircuitBreakerStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCircuitBreakerStore.class);
+
     private final DynamoDbClient dynamoDb;
     private final String tableName;
 
+    /**
+     * Constructs a new DynamoDB-backed circuit breaker store.
+     *
+     * @param dynamoDb  The {@link DynamoDbClient} instance used for accessing DynamoDB.
+     * @param tableName The name of the DynamoDB table to store circuit breaker state.
+     */
     public DynamoDBCircuitBreakerStore(DynamoDbClient dynamoDb, String tableName) {
         this.dynamoDb = dynamoDb;
         this.tableName = tableName;
     }
 
+    /**
+     * Fetches the current state of the circuit breaker from DynamoDB.
+     *
+     * @param key The unique identifier for the circuit breaker (e.g., "inventoryService.reserveStock").
+     * @return The {@link CircuitBreakerState} if present, otherwise {@code null}.
+     */
     @Override
     public CircuitBreakerState getState(String key) {
         GetItemRequest request = GetItemRequest.builder().tableName(tableName).key(Map.of("id", AttributeValue.fromS(key))).build();
@@ -39,6 +71,16 @@ public class DynamoDBCircuitBreakerStore implements CircuitBreakerStore {
         return new CircuitBreakerState(status, failureCount, lastFailureTime);
     }
 
+    /**
+     * Saves or updates the circuit breaker state in DynamoDB.
+     * <p>
+     * Uses a conditional expression to prevent overwriting newer states
+     * in the event of race conditions or out-of-order writes.
+     * </p>
+     *
+     * @param key   The unique identifier for the circuit breaker.
+     * @param state The current {@link CircuitBreakerState} to store.
+     */
     @Override
     public void saveState(String key, CircuitBreakerState state) {
         Map<String, AttributeValue> keyMap = Map.of("id", AttributeValue.fromS(key));
@@ -57,6 +99,11 @@ public class DynamoDBCircuitBreakerStore implements CircuitBreakerStore {
         }
     }
 
+    /**
+     * Resets the circuit breaker state to default (CLOSED with zero failures).
+     *
+     * @param key The unique identifier for the circuit breaker.
+     */
     @Override
     public void reset(String key) {
         CircuitBreakerState state = new CircuitBreakerState("CLOSED", 0, Instant.now());

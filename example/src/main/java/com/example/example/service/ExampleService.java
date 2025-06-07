@@ -8,8 +8,12 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ExampleService {
-    @CloudCircuitBreaker(function = "callDownstreamService")
+    @CloudCircuitBreaker(function = "callDownstreamService", fallback = "fallbackService")
     public String callDownstreamService() {
         return "Success!";
+    }
+
+    public String fallbackService() {
+        return "Fallback!";
     }
 }

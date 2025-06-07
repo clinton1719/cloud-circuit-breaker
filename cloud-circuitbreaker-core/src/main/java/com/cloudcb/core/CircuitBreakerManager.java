@@ -7,19 +7,55 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 
 /**
+ * Manages circuit breaker state transitions for a given key using a persistent store.
+ * <p>
+ * This class tracks failures and determines whether a circuit is open or closed
+ * based on a threshold and a reset timeout. It uses a {@link CircuitBreakerStore}
+ * to persist state across distributed environments.
+ * </p>
+ *
+ * <p>
+ * By default, the circuit opens after {@value FAILURE_THRESHOLD} consecutive failures
+ * and remains open for {@value RESET_TIMEOUT_SECONDS} seconds.
+ * </p>
+ *
+ * <p>
+ * This class is thread-safe if the underlying {@code CircuitBreakerStore} implementation is thread-safe.
+ * </p>
+ *
  * @author Clinton Fernandes
  */
 public class CircuitBreakerManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CircuitBreakerManager.class);
+
+    /**
+     * The number of failures required to trip the circuit breaker.
+     */
     private static final int FAILURE_THRESHOLD = 5;
+
+    /**
+     * Time (in seconds) to wait before allowing a circuit breaker to transition from OPEN to CLOSED again.
+     */
     private static final int RESET_TIMEOUT_SECONDS = 30;
+
     private final CircuitBreakerStore store;
 
+    /**
+     * Constructs a new {@code CircuitBreakerManager} with the specified persistent store.
+     *
+     * @param store The {@link CircuitBreakerStore} implementation for storing circuit breaker state.
+     */
     public CircuitBreakerManager(CircuitBreakerStore store) {
         this.store = store;
     }
 
+    /**
+     * Checks if the circuit breaker for the given key is currently open.
+     *
+     * @param key A unique identifier representing a specific circuit breaker (e.g., "paymentService.charge").
+     * @return {@code true} if the circuit is open and within the timeout window; {@code false} otherwise.
+     */
     public boolean isCircuitOpen(String key) {
         CircuitBreakerState state = store.getState(key);
         if (state == null) return false;
@@ -31,10 +67,23 @@ public class CircuitBreakerManager {
         return false;
     }
 
+    /**
+     * Records a successful operation and resets the circuit breaker state for the given key.
+     *
+     * @param key A unique identifier representing a specific circuit breaker.
+     */
     public void recordSuccess(String key) {
         store.reset(key);
     }
 
+    /**
+     * Records a failed operation for the given key.
+     * <p>
+     * If the failure count exceeds the configured threshold, the circuit will be opened.
+     * </p>
+     *
+     * @param key A unique identifier representing a specific circuit breaker.
+     */
     public void recordFailure(String key) {
         CircuitBreakerState state = store.getState(key);
         if (state == null) {
@@ -49,5 +98,4 @@ public class CircuitBreakerManager {
         }
         store.saveState(key, state);
     }
-
 }
