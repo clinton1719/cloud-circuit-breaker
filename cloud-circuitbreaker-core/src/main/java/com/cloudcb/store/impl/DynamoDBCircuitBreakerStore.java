@@ -101,9 +101,7 @@ public class DynamoDBCircuitBreakerStore implements CircuitBreakerStore {
 
 
         try {
-            UpdateItemRequest request = UpdateItemRequest.builder().tableName(tableName).key(keyMap).updateExpression(updateExpression)
-                    .conditionExpression(conditionExpression).expressionAttributeNames(expressionAttributeNames)
-                    .expressionAttributeValues(expressionAttributeValues).build();
+            UpdateItemRequest request = UpdateItemRequest.builder().tableName(tableName).key(keyMap).updateExpression(updateExpression).conditionExpression(conditionExpression).expressionAttributeNames(expressionAttributeNames).expressionAttributeValues(expressionAttributeValues).build();
 
             dynamoDb.updateItem(request);
             LOGGER.debug("Circuit breaker state for key {} saved successfully.", key);

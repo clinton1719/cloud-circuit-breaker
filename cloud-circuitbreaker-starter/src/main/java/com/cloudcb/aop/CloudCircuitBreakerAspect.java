@@ -59,11 +59,12 @@ public class CloudCircuitBreakerAspect {
     /**
      * Constructs the aspect with the provided store, which is used to manage circuit breaker state.
      *
-     * @param store  The implementation of {@link CircuitBreakerStore} to use for persistence
-     * @param config Config required for different arguments
+     * @param store                 The implementation of {@link CircuitBreakerStore} to use for persistence
+     * @param config                Config required for different arguments
+     * @param circuitBreakerManager The {@link CircuitBreakerManager} to manage circuit states
      */
-    public CloudCircuitBreakerAspect(CircuitBreakerStore store, CloudCircuitBreakerConfig config) {
-        this.circuitBreakerManager = new CircuitBreakerManager(store);
+    public CloudCircuitBreakerAspect(CircuitBreakerStore store, CloudCircuitBreakerConfig config, CircuitBreakerManager circuitBreakerManager) {
+        this.circuitBreakerManager = circuitBreakerManager;
         this.config = config;
     }
 

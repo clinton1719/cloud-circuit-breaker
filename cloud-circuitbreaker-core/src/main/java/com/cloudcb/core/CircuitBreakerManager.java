@@ -15,8 +15,8 @@ import java.time.Instant;
  * </p>
  *
  * <p>
- * By default, the circuit opens after {@value FAILURE_THRESHOLD} consecutive failures
- * and remains open for {@value RESET_TIMEOUT_SECONDS} seconds.
+ * The circuit opens after failureThreshold consecutive failures
+ * and remains open for resetTimeoutSeconds seconds.
  * </p>
  *
  * <p>
@@ -32,22 +32,26 @@ public class CircuitBreakerManager {
     /**
      * The number of failures required to trip the circuit breaker.
      */
-    private static final int FAILURE_THRESHOLD = 5;
+    private final int failureThreshold;
 
     /**
      * Time (in seconds) to wait before allowing a circuit breaker to transition from OPEN to CLOSED again.
      */
-    private static final int RESET_TIMEOUT_SECONDS = 30;
+    private final int resetTimeoutSeconds;
 
     private final CircuitBreakerStore store;
 
     /**
      * Constructs a new {@code CircuitBreakerManager} with the specified persistent store.
      *
-     * @param store The {@link CircuitBreakerStore} implementation for storing circuit breaker state.
+     * @param store               The {@link CircuitBreakerStore} implementation for storing circuit breaker state.
+     * @param failureThreshold    The failure threshold after which circuit breaks
+     * @param resetTimeoutSeconds The time in seconds after which API calls are redirected to original source
      */
-    public CircuitBreakerManager(CircuitBreakerStore store) {
+    public CircuitBreakerManager(CircuitBreakerStore store, int failureThreshold, int resetTimeoutSeconds) {
         this.store = store;
+        this.failureThreshold = failureThreshold;
+        this.resetTimeoutSeconds = resetTimeoutSeconds;
     }
 
     /**
@@ -62,7 +66,7 @@ public class CircuitBreakerManager {
 
         if ("OPEN".equals(state.status)) {
             Instant now = Instant.now();
-            return !now.isAfter(state.lastFailureTime.plusSeconds(RESET_TIMEOUT_SECONDS));
+            return !now.isAfter(state.lastFailureTime.plusSeconds(resetTimeoutSeconds));
         }
         return false;
     }
@@ -91,7 +95,7 @@ public class CircuitBreakerManager {
         } else {
             state.failureCount++;
             state.lastFailureTime = Instant.now();
-            if (state.failureCount >= FAILURE_THRESHOLD) {
+            if (state.failureCount >= failureThreshold) {
                 state.status = "OPEN";
                 LOGGER.info("Updating state to open for {}", key);
             }

@@ -9,6 +9,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -91,21 +93,28 @@ public class CloudCircuitBreakerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(CircuitBreakerManager.class)
-    public CircuitBreakerManager circuitBreakerManager(CircuitBreakerStore store, CloudCircuitBreakerConfig config) {
-        return new CircuitBreakerManager(store);
+    public CircuitBreakerManager circuitBreakerManager(CircuitBreakerStore store, CloudCircuitBreakerConfig config) throws Exception {
+        if (config.getFailureThreshold() == null) {
+            throw new IllegalArgumentException("Failure threshold argument required in application.properties");
+        }
+        if (config.getResetTimeoutSeconds() == null) {
+            throw new IllegalArgumentException("Reset timeout argument required in application.properties");
+        }
+        return new CircuitBreakerManager(store, Integer.valueOf(config.getFailureThreshold()), Integer.valueOf(config.getResetTimeoutSeconds()));
     }
 
     /**
      * Registers the AOP aspect that applies circuit breaker logic to annotated methods.
      *
-     * @param store  the store used to track circuit state
-     * @param config The config for table arguments
+     * @param store                 the store used to track circuit state
+     * @param config                The config for table arguments
+     * @param circuitBreakerManager The {@link CircuitBreakerManager} to manage circuit states
      * @return the circuit breaker aspect
      */
     @Bean
     @ConditionalOnMissingBean(CloudCircuitBreakerAspect.class)
-    public CloudCircuitBreakerAspect cloudCircuitBreakerAspect(CircuitBreakerStore store, CloudCircuitBreakerConfig config) {
-        return new CloudCircuitBreakerAspect(store, config);
+    public CloudCircuitBreakerAspect cloudCircuitBreakerAspect(CircuitBreakerStore store, CloudCircuitBreakerConfig config, CircuitBreakerManager circuitBreakerManager) {
+        return new CloudCircuitBreakerAspect(store, config, circuitBreakerManager);
     }
 }
 

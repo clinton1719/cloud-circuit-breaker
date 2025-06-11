@@ -1,6 +1,7 @@
 package com.cloudcb.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
  * Configuration properties for the Cloud Circuit Breaker library.
@@ -33,13 +34,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * }</pre>
  *
  * <p>
- * Static initialization is supported via {@link #init(String, String, String, String)},
+ * Static initialization is supported via {@link #init(String, String, String, String, String, String)} (String, String, String, String)},
  * typically useful for non-Spring runtimes.
  * </p>
  *
  * @author Clinton Fernandes
  */
 @ConfigurationProperties(prefix = "cloudcb")
+@Component
 public class CloudCircuitBreakerConfig {
 
     private static CloudCircuitBreakerConfig instance;
@@ -47,6 +49,10 @@ public class CloudCircuitBreakerConfig {
     private String tableName;
     private String tableType;
     private String region;
+
+    private String failureThreshold;
+
+    private String resetTimeoutSeconds;
 
 
     /**
@@ -59,17 +65,21 @@ public class CloudCircuitBreakerConfig {
      * Initializes a static singleton instance with manually provided values.
      * Useful in contexts outside Spring (e.g., AWS Lambda).
      *
-     * @param service   the service name
-     * @param table     the DynamoDB table name
-     * @param tableType the backing store type (e.g., dynamodb)
-     * @param region    the AWS region
+     * @param service             the service name
+     * @param table               the DynamoDB table name
+     * @param tableType           the backing store type (e.g., dynamodb)
+     * @param region              the AWS region
+     * @param failureThreshold    the threshold for breakpoint
+     * @param resetTimeoutSeconds the timeout for reset
      */
-    public static void init(String service, String table, String tableType, String region) {
+    public static void init(String service, String table, String tableType, String region, String failureThreshold, String resetTimeoutSeconds) {
         CloudCircuitBreakerConfig config = new CloudCircuitBreakerConfig();
         config.setServiceName(service);
         config.setTableName(table);
         config.setTableType(tableType);
         config.setRegion(region);
+        config.setFailureThreshold(failureThreshold);
+        config.setResetTimeoutSeconds(resetTimeoutSeconds);
         instance = config;
     }
 
@@ -185,4 +195,39 @@ public class CloudCircuitBreakerConfig {
         this.region = region;
     }
 
+    /**
+     * Gets the failure threshold after which circuit breaks
+     *
+     * @return the threshold limit
+     */
+    public String getFailureThreshold() {
+        return failureThreshold;
+    }
+
+    /**
+     * Sets the failure threshold after which circuit breaks
+     *
+     * @param failureThreshold the threshold for breakpoint
+     */
+    public void setFailureThreshold(String failureThreshold) {
+        this.failureThreshold = failureThreshold;
+    }
+
+    /**
+     * Gets the timeout in seconds after which circuit resets
+     *
+     * @return the threshold limit
+     */
+    public String getResetTimeoutSeconds() {
+        return resetTimeoutSeconds;
+    }
+
+    /**
+     * Sets the timeout in seconds after which circuit resets
+     *
+     * @param resetTimeoutSeconds the timeout in seconds for reset
+     */
+    public void setResetTimeoutSeconds(String resetTimeoutSeconds) {
+        this.resetTimeoutSeconds = resetTimeoutSeconds;
+    }
 }

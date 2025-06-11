@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ExampleService {
+
     @CloudCircuitBreaker(function = "callDownstreamService", fallback = "fallbackService")
     public String callDownstreamService() {
         System.err.println("  ---> SIMULATING FAILURE for myDownstreamApiCall!");

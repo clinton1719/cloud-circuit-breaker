@@ -36,9 +36,9 @@ public class CircuitBreakerState {
     /**
      * Constructs a new {@code CircuitBreakerState}.
      *
-     * @param status           The current status ("OPEN" or "CLOSED").
-     * @param failureCount     The number of consecutive failures.
-     * @param lastFailureTime  The time when the last failure occurred.
+     * @param status          The current status ("OPEN" or "CLOSED").
+     * @param failureCount    The number of consecutive failures.
+     * @param lastFailureTime The time when the last failure occurred.
      */
     public CircuitBreakerState(String status, int failureCount, Instant lastFailureTime) {
         this.status = status;
