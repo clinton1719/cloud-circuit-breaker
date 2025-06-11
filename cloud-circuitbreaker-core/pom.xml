@@ -10,7 +10,11 @@
     </parent>
     <artifactId>cloud-circuitbreaker-core</artifactId>
     <name>core</name>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
+    <description>
+        Core implementation of a distributed, cloud-native circuit breaker designed for use in AWS environments. Built with performance in mind, it provides annotation-free and annotation-based APIs to manage service-level fault tolerance using DynamoDB as a backend. Supports extensibility for future pluggable storage engines.
+    </description>
+
 
     <dependencies>
         <dependency>

@@ -12,8 +12,10 @@
 
     <groupId>io.github.clinton1719</groupId>
     <artifactId>cloud-circuitbreaker-parent</artifactId>
-    <version>0.1.0</version> <packaging>pom</packaging> <name>Cloud Circuit Breaker</name>
-    <description>A robust, distributed circuit breaker library for Spring Boot applications designed for resilience.</description>
+    <version>0.3.0</version> <packaging>pom</packaging> <name>Cloud Circuit Breaker</name>
+    <description>
+        A distributed, cloud-native circuit breaker library for AWS-based systems, with Spring Boot support and DynamoDB backend.
+    </description>
     <url>https://github.com/clinton1719/cloud-circuitbreaker</url> <licenses>
     <license>
         <name>Apache License, Version 2.0</name>

@@ -10,7 +10,11 @@
     </parent>
     <artifactId>cloud-circuitbreaker-starter</artifactId>
     <name>starter</name>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
+    <description>
+        Spring Boot starter for cloud-circuitbreaker-core. Auto-configures the circuit breaker with sensible defaults and enables method-level annotations for fault-tolerant service calls. Ideal for teams deploying to ECS, EKS, or Lambda with minimal setup.
+    </description>
+
 
     <dependencies>
         <dependency>
